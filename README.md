@@ -9,9 +9,9 @@
 
 This crate provides de/serialization helper for [`byte-unit`] crate to use in
 combination with [serde's with-annotation]. This might be useful because it
-hides a `byte-unit` crate as an implementation details and allows use the simple
+hides a [`byte-unit`] crate as an implementation details and allows use the simple
 `u64` type instead. In other words, by using this crate, your code will not depend
-on the `byte-unit` crate.
+on the [`byte-unit`] crate.
 
 ## Example
 
@@ -28,11 +28,10 @@ struct Foo {
 }
 ```
 
-[serde's with-annotation]: https://serde.rs/field-attrs.html#with
-[`humantime-serde`]: https://github.com/jean-airoldie/humantime-serde
-
 The idea of this crate is heavily inspired by [`humantime-serde`].
 
-<!-- ANCHOR_END: description -->
-
+[serde's with-annotation]: https://serde.rs/field-attrs.html#with
+[`humantime-serde`]: https://github.com/jean-airoldie/humantime-serde
 [`byte-unit`]: https://github.com/magiclen/byte-unit
+
+<!-- ANCHOR_END: description -->
