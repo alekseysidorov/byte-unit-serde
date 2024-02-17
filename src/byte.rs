@@ -1,8 +1,15 @@
+//! A [`serde`] wrapper, that can be used to serialize and deserialize [`u64`] 
+//! types using [`Byte`] representation.
+
 use std::marker::PhantomData;
 
 use byte_unit::Byte;
 use serde::{Deserialize, Serialize, Serializer};
 
+/// Serializes a [`u64`] via [`Byte`] type.
+/// 
+/// This function is desined to use with the `serde_derive`'s 
+/// `with` and `serialize_with` annotations.
 pub fn deserialize<'a, T, D>(der: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'a>,
@@ -11,6 +18,10 @@ where
     T::try_from(Deser(der, PhantomData))
 }
 
+/// Deserializes a [`u64`] via [`byte_unit::Byte`] type.
+///
+/// This function is desined to use with the `serde_derive`'s 
+/// `with` and `serialize_with` annotations.
 pub fn serialize<T, S>(val: &T, ser: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
@@ -19,6 +30,9 @@ where
     Ser::from(val).serialize(ser)
 }
 
+/// A wrapper type which provides [`TryFrom`] implementation for types which 
+/// can be deserialized by using the [`Byte`] type's [`Deserialize`] implementation.
+#[derive(Debug)]
 pub struct Deser<'a, D>(D, PhantomData<&'a ()>);
 
 impl<'a, D> TryFrom<Deser<'a, D>> for u64
@@ -45,6 +59,9 @@ where
     }
 }
 
+/// A wrapper which provides [`Serialize`] implementation for types which
+/// can be serialized by using the [`Byte`] type's [`Serialize`] implementation.
+#[derive(Debug)]
 pub struct Ser<T>(T);
 
 impl Serialize for Ser<&u64> {
