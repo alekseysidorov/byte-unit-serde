@@ -1,36 +1,73 @@
+use std::marker::PhantomData;
+
 use byte_unit::Byte;
 use serde::{Deserialize, Serialize, Serializer};
 
 pub fn deserialize<'a, T, D>(der: D) -> Result<T, D::Error>
 where
     D: serde::Deserializer<'a>,
-    Scalar<T>: From<Byte>,
+    T: TryFrom<Deser<'a, D>, Error = D::Error>,
 {
-    let byte = Byte::deserialize(der)?;
-    Ok(Scalar::<T>::from(byte).0)
+    T::try_from(Deser(der, PhantomData))
 }
 
 pub fn serialize<T, S>(val: &T, ser: S) -> Result<S::Ok, S::Error>
 where
     S: Serializer,
-    Byte: for<'a> From<Scalar<&'a T>>,
+    for<'a> Ser<&'a T>: Serialize,
 {
-    let byte = Byte::from(Scalar(val));
-    byte.serialize(ser)
+    Ser::from(val).serialize(ser)
 }
 
-#[derive(Copy, Clone, Eq, Hash, PartialEq)]
-pub struct Scalar<T>(T);
+pub struct Deser<'a, D>(D, PhantomData<&'a ()>);
 
-impl From<Byte> for Scalar<u64> {
-    fn from(value: Byte) -> Self {
-        Self(value.as_u64())
+impl<'a, D> TryFrom<Deser<'a, D>> for u64
+where
+    D: serde::Deserializer<'a>,
+{
+    type Error = D::Error;
+
+    fn try_from(value: Deser<'a, D>) -> Result<Self, Self::Error> {
+        let byte = Byte::deserialize(value.0)?;
+        Ok(byte.as_u64())
     }
 }
 
-impl From<Scalar<&u64>> for Byte {
-    fn from(value: Scalar<&u64>) -> Self {
-        Byte::from_u64(*value.0)
+impl<'a, D> TryFrom<Deser<'a, D>> for Option<u64>
+where
+    D: serde::Deserializer<'a>,
+{
+    type Error = D::Error;
+
+    fn try_from(value: Deser<'a, D>) -> Result<Self, Self::Error> {
+        let byte = Option::<Byte>::deserialize(value.0)?;
+        Ok(byte.map(|x| x.as_u64()))
+    }
+}
+
+pub struct Ser<T>(T);
+
+impl Serialize for Ser<&u64> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        Byte::from_u64(*self.0).serialize(serializer)
+    }
+}
+
+impl Serialize for Ser<&Option<u64>> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        self.0.map(Byte::from_u64).serialize(serializer)
+    }
+}
+
+impl<T> From<T> for Ser<T> {
+    fn from(value: T) -> Self {
+        Self(value)
     }
 }
 

@@ -1,5 +1,6 @@
 [package]
 name = "byte-unit-serde"
+description = "De/serialization functions for byte-unit crate."
 version = "0.0.0"
 edition = "2021"
 license = "MIT OR Apache-2.0"
